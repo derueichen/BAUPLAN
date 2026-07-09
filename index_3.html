@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#F6F4EE">
+<title>BAUPLAN · 任務建構系統</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23F6F4EE'/%3E%3Ccircle cx='9' cy='16' r='6' fill='%23DF3418'/%3E%3Cpath d='M16 22 22 10 28 22z' fill='%23F0B41C'/%3E%3Crect x='17' y='16' width='6' height='6' fill='%231D57A5'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* ============ BAUPLAN — Bauhaus token system ============ */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#F6F4EE;
+  --ink:#16130E;
+  --red:#DF3418;
+  --blue:#1D57A5;
+  --yellow:#F0B41C;
+  --card:#FFFDF7;
+  --grid:#E4DFD2;
+  --we:#ECE7DA;
+  --dw:26px;   /* gantt day width */
+  --lw:216px;  /* gantt label width */
+}
+::selection{background:var(--yellow)}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--paper);color:var(--ink);font-family:'Jost','Noto Sans TC',sans-serif;line-height:1.5}
+button{font-family:inherit;color:inherit;cursor:pointer;background:none;border:none;font-size:inherit}
+input,select{font-family:inherit;font-size:15px;color:var(--ink)}
+:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ============ header ============ */
+.top{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:22px;flex-wrap:wrap;padding:15px 22px;background:var(--paper);border-bottom:3px solid var(--ink)}
+.brand{display:flex;align-items:center;gap:9px}
+.lg{display:inline-block;width:15px;height:15px}
+.lg-c{background:var(--red);border-radius:50%}
+.lg-t{width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:16px solid var(--yellow);background:none}
+.lg-s{background:var(--blue)}
+.brand h1{font-size:21px;font-weight:700;letter-spacing:.22em;margin-left:5px}
+.brand .sub{font-size:11px;letter-spacing:.34em;opacity:.6;font-weight:500;margin-left:2px}
+.tabs{display:flex}
+.tab{padding:8px 24px;border:2px solid var(--ink);font-size:14px;font-weight:600;letter-spacing:.28em;text-indent:.28em;background:transparent}
+.tab+.tab{margin-left:-2px}
+.tab.on{background:var(--ink);color:var(--paper)}
+.io{margin-left:auto;display:flex;gap:10px}
+
+/* ============ buttons ============ */
+.btn{padding:8px 16px;border:2px solid var(--ink);background:var(--card);font-size:14px;font-weight:600;letter-spacing:.12em}
+.btn:active{background:var(--ink);color:var(--paper)}
+.btn.primary{background:var(--red);color:#fff}
+.btn.sm{padding:5px 12px;font-size:12px}
+
+/* ============ layout ============ */
+main{max-width:1120px;margin:0 auto;padding:28px 22px 70px}
+.view{display:none}
+.view.show{display:block}
+.sec-h{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;letter-spacing:.3em;margin:32px 0 14px}
+.sec-h::before{content:'';width:13px;height:13px;background:var(--ink);flex:none}
+.sec-h.red{color:var(--red)}
+.sec-h.red::before{background:var(--red)}
+.sec-h .cnt{font-size:12px;background:var(--ink);color:var(--paper);padding:1px 9px;letter-spacing:.1em}
+.sec-h.red .cnt{background:var(--red)}
+
+/* ============ today ============ */
+.t-head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.greet{font-size:13px;letter-spacing:.32em;font-weight:700;color:var(--red)}
+.t-date{font-size:clamp(29px,4.6vw,45px);font-weight:700;letter-spacing:.03em;line-height:1.18;margin:4px 0 7px}
+.t-quote{font-size:13px;opacity:.65;letter-spacing:.06em}
+.ring-wrap{text-align:center;flex:none}
+.ring{width:118px;height:118px;display:block;margin:0 auto}
+.ring .track{fill:none;stroke:#DCD6C7;stroke-width:11}
+.ring .fill{fill:none;stroke:var(--red);stroke-width:11;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .5s}
+.ring .ringtxt{font-weight:700;font-size:25px;fill:var(--ink);font-family:'Jost',sans-serif}
+.ring-cap{font-size:11px;letter-spacing:.24em;margin-top:6px;opacity:.65}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:26px 0 6px}
+.stat{border:3px solid var(--ink);background:var(--card);padding:13px 16px 11px}
+.stat b{display:block;font-size:38px;font-weight:700;line-height:1.12}
+.stat span{font-size:11px;letter-spacing:.26em;opacity:.75;font-weight:500}
+.stat:nth-child(1){border-top:9px solid var(--red)}
+.stat:nth-child(2){border-top:9px solid var(--blue)}
+.stat:nth-child(3){border-top:9px solid var(--yellow)}
+.stat:nth-child(4){border-top:9px solid var(--ink)}
+.next-line{font-size:13px;opacity:.7;margin-top:16px;letter-spacing:.05em}
+
+/* ============ task rows ============ */
+.tlist{display:block}
+.task{display:flex;align-items:flex-start;gap:13px;padding:12px 14px;border:2px solid var(--ink);background:var(--card)}
+.task+.task{margin-top:-2px}
+.box{width:22px;height:22px;flex:none;margin-top:2px;border:2px solid var(--ink);background:transparent;position:relative}
+.box.chk{background:var(--red)}
+.box.chk::after{content:'';position:absolute;left:5px;top:0;width:6px;height:12px;border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg)}
+.t-main{flex:1;min-width:0}
+.t-title{font-size:15px;font-weight:500;word-break:break-word}
+.task.done .t-title{text-decoration:line-through;opacity:.5}
+.t-meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:3px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;opacity:.85}
+.chip i{width:10px;height:10px;flex:none}
+.t-when{font-size:12px;opacity:.6;font-weight:500}
+.t-when.late{color:var(--red);opacity:1;font-weight:700}
+.mini{border:2px solid var(--ink);background:var(--yellow);padding:4px 10px;font-size:12px;font-weight:700;flex:none}
+.icon{border:2px solid var(--ink);background:transparent;padding:2px 9px;font-size:13px;flex:none}
+.icon:hover{background:var(--ink);color:var(--paper)}
+.icon.armed,.hbtn.armed{background:var(--red)!important;color:#fff!important;font-size:12px}
+
+/* ============ empty state ============ */
+.empty{border:3px solid var(--ink);background:var(--card);padding:52px 24px;text-align:center;margin-top:26px}
+.empty .shapes{display:flex;justify-content:center;align-items:flex-end;gap:15px;margin-bottom:20px}
+.empty .shapes .lg{width:26px;height:26px}
+.empty .shapes .lg-t{width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-bottom:27px solid var(--yellow)}
+.empty h3{font-size:19px;letter-spacing:.2em;margin-bottom:8px;font-weight:700}
+.empty p{font-size:14px;opacity:.7;margin-bottom:22px}
+.empty .btn{margin:4px 6px}
+
+/* ============ projects ============ */
+.bar-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.overall{font-size:13px;letter-spacing:.1em;font-weight:600;opacity:.8}
+.card{border:3px solid var(--ink);background:var(--card);margin-bottom:30px}
+.card-h{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:3px solid var(--ink);flex-wrap:wrap}
+.card-name{font-size:17px;font-weight:700;letter-spacing:.1em;flex:1;min-width:120px;word-break:break-word}
+.hbtn{border:2px solid currentColor;background:transparent;color:inherit;padding:3px 10px;font-size:12px;font-weight:700;letter-spacing:.06em;flex:none}
+.hbtn:hover{background:rgba(0,0,0,.16)}
+.card-b{padding:16px}
+.p-meta{font-size:13px;opacity:.75;margin-bottom:8px;letter-spacing:.04em}
+.pbar{height:14px;border:2px solid var(--ink);background:transparent;margin-bottom:16px}
+.pbar i{display:block;height:100%;transition:width .4s}
+
+/* ============ flight deck ============ */
+.drag-hint{font-size:12px;opacity:.55;letter-spacing:.06em;margin-left:auto}
+.deck{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:14px;margin-bottom:28px}
+.tile{border:2px solid var(--ink);background:var(--card);text-align:left;padding:0;display:flex;flex-direction:column;cursor:pointer}
+.tile-top{height:8px;flex:none}
+.tile-b{padding:10px 12px 11px;display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
+.tile-h{display:flex;align-items:flex-start;gap:8px}
+.tile-name{font-size:14px;font-weight:700;letter-spacing:.05em;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grab{flex:none;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;font-size:15px;line-height:1;opacity:.45;padding:2px 5px}
+.grab:active{cursor:grabbing}
+.tile:hover .grab{opacity:1}
+.tile-nums{display:flex;align-items:baseline;gap:7px}
+.tile-nums b{font-size:27px;font-weight:700;line-height:1}
+.tile-nums span{font-size:10px;letter-spacing:.24em;opacity:.7}
+.tile-nums em{font-style:normal;font-size:12px;font-weight:600;margin-left:auto;opacity:.75}
+.pbar.tiny{height:8px;margin-bottom:0}
+.tile-meta{font-size:11px;letter-spacing:.08em;opacity:.9}
+.tile-meta .late{color:var(--red);font-weight:700}
+.tile-next{font-size:11px;opacity:.65;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:auto}
+.tile.sel{background:var(--ink);color:var(--paper)}
+.tile.sel .pbar{border-color:var(--paper)}
+.tile.sel .tile-meta .late{color:var(--yellow)}
+.tile.dragging{opacity:.45}
+.tile-add{align-items:center;justify-content:center;font-size:14px;font-weight:700;letter-spacing:.16em;min-height:132px;background:transparent}
+
+/* ============ gantt ============ */
+.g-ctrl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.g-range{font-weight:700;letter-spacing:.14em;font-size:15px;margin:0 6px}
+.legend{margin-left:auto;display:flex;align-items:center;gap:14px;font-size:12px;opacity:.85}
+.lg-key{display:inline-block;width:15px;height:15px;border:2px solid var(--ink);vertical-align:-3px;margin-right:5px}
+.lg-key.solid{background:var(--ink)}
+.lg-key.stripe{background-image:repeating-linear-gradient(45deg,var(--ink) 0 3px,transparent 3px 7px)}
+.lg-key.tline{width:4px;border:none;background:var(--red);height:16px}
+.g-outer{display:flex;border:3px solid var(--ink);background:var(--card)}
+.g-labels{flex:none;width:var(--lw);border-right:3px solid var(--ink);background:var(--card)}
+.g-scroll{flex:1;overflow-x:auto;min-width:0}
+.g-row{display:grid;width:max-content}
+.g-row>*{grid-row:1}
+.g-label{display:flex;align-items:center;gap:8px;padding:0 12px;font-size:13px;white-space:nowrap;overflow:hidden;border-bottom:1px solid var(--grid)}
+.g-label em{font-style:normal;font-size:11px;background:var(--ink);color:var(--paper);padding:0 6px;margin-left:auto;font-weight:600;flex:none}
+.g-tname{overflow:hidden;text-overflow:ellipsis}
+.g-lm{height:34px;border-bottom:2px solid var(--ink);font-weight:700;letter-spacing:.24em;font-size:11px}
+.g-ld{height:42px;border-bottom:2px solid var(--ink);font-size:11px;letter-spacing:.3em;opacity:.6;font-weight:600}
+.g-plabel{height:38px;font-weight:700;background:var(--paper)}
+.g-plabel .dot{width:11px;height:11px;flex:none}
+.g-tlabel{height:36px}
+.g-tlabel.done .g-tname{text-decoration:line-through;opacity:.5}
+.g-mrow{height:34px}
+.g-drow{height:42px}
+.g-prow{height:38px;background:var(--paper)}
+.g-trow{height:36px}
+.g-month{border-bottom:2px solid var(--ink);padding:6px 10px;font-size:12px;font-weight:700;letter-spacing:.2em;white-space:nowrap;overflow:hidden}
+.g-day{border-left:1px solid var(--grid);border-bottom:2px solid var(--ink);text-align:center;padding-top:4px}
+.g-day.we{background:var(--we)}
+.g-day span{display:block;font-size:9px;opacity:.55;line-height:1.2}
+.g-day b{font-size:12px;font-weight:600}
+.g-day.today{box-shadow:inset 3px 0 0 var(--red)}
+.g-day.today b{background:var(--red);color:#fff;padding:0 4px}
+.g-cell{border-left:1px solid var(--grid);border-bottom:1px solid var(--grid)}
+.g-cell.we{background:var(--we)}
+.g-cell.today{box-shadow:inset 3px 0 0 var(--red)}
+.p-span{align-self:center;height:7px;background:var(--ink);z-index:2;margin:0 2px}
+.g-bar{align-self:center;height:18px;z-index:2;border:2px solid var(--ink);margin:0 1px;cursor:pointer;background-color:transparent}
+.g-bar:hover{filter:brightness(.9)}
+.g-hint{font-size:12px;opacity:.6;margin-top:12px;letter-spacing:.04em}
+
+/* ============ modal ============ */
+#modal{position:fixed;inset:0;background:rgba(22,19,14,.5);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}
+#modal.show{display:flex}
+.m-panel{background:var(--paper);border:3px solid var(--ink);padding:24px;width:min(440px,100%);max-height:90vh;overflow-y:auto}
+.m-panel h3{font-size:17px;letter-spacing:.24em;margin-bottom:10px;font-weight:700}
+.m-panel label{display:block;font-size:12px;font-weight:700;letter-spacing:.2em;margin:15px 0 6px}
+.m-panel input,.m-panel select{width:100%;padding:9px 11px;border:2px solid var(--ink);background:var(--card)}
+.m-panel select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink) 50%),linear-gradient(135deg,var(--ink) 50%,transparent 50%);background-position:calc(100% - 19px) 55%,calc(100% - 13px) 55%;background-size:6px 6px,6px 6px;background-repeat:no-repeat;padding-right:34px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.swatches{display:flex;gap:12px}
+.sw{width:32px;height:32px;border:2px solid var(--ink)}
+.sw.on{outline:3px solid var(--ink);outline-offset:3px}
+.hint{font-size:12px;opacity:.65;margin-top:10px;line-height:1.7;letter-spacing:.03em}
+.m-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:24px}
+
+/* ============ markdown import ============ */
+.m-wide{width:min(760px,100%)}
+.md-ta{width:100%;min-height:190px;padding:11px;border:2px solid var(--ink);background:var(--card);font-family:'Jost',monospace;font-size:13px;line-height:1.6;resize:vertical}
+.md-syntax{font-size:12px;opacity:.7;line-height:1.9;margin-top:10px;letter-spacing:.02em}
+.md-syntax code{background:var(--we);padding:1px 5px;font-weight:600}
+.mp-summary{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;font-weight:600;letter-spacing:.06em;margin:4px 0 12px}
+.mp-summary b{color:var(--red)}
+.mp-warn{border-left:5px solid var(--yellow);background:var(--we);padding:8px 12px;font-size:12px;line-height:1.7;margin-bottom:14px}
+.mp-table{width:100%;border-collapse:collapse;font-size:13px}
+.mp-table th{text-align:left;font-size:11px;letter-spacing:.14em;padding:6px 8px;border-bottom:2px solid var(--ink);font-weight:700;opacity:.7}
+.mp-table td{padding:5px 8px;border-bottom:1px solid var(--grid);vertical-align:middle}
+.mp-table tr.skip td{opacity:.4;text-decoration:line-through}
+.mp-table tr.dup td{opacity:.45}
+.mp-t-title{font-weight:500;word-break:break-word}
+.mp-date{white-space:nowrap;font-size:12px;opacity:.85}
+.mp-sel{width:100%;padding:4px 6px;border:2px solid var(--ink);background:var(--card);font-size:12px;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink) 50%),linear-gradient(135deg,var(--ink) 50%,transparent 50%);background-position:calc(100% - 14px) 55%,calc(100% - 9px) 55%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:26px}
+.mp-newname{width:100%;padding:4px 6px;border:2px solid var(--ink);background:var(--yellow);font-size:12px;margin-top:3px}
+.mp-badge{font-size:10px;letter-spacing:.1em;padding:1px 6px;border:1px solid var(--ink);white-space:nowrap}
+.mp-badge.done{background:var(--ink);color:var(--paper)}
+.mp-badge.dup{background:var(--we)}
+.mp-scroll{max-height:44vh;overflow-y:auto;border:2px solid var(--ink);margin-bottom:6px}
+.mp-x{border:none;background:none;font-size:15px;opacity:.5;cursor:pointer;padding:0 4px}
+.mp-x:hover{opacity:1;color:var(--red)}
+
+/* ============ toast / footer ============ */
+#toast{position:fixed;bottom:28px;left:50%;transform:translate(-50%,10px);background:var(--ink);color:var(--paper);padding:10px 22px;font-weight:600;letter-spacing:.12em;font-size:14px;opacity:0;pointer-events:none;transition:.25s;border-left:6px solid var(--red);z-index:200;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+footer{max-width:1120px;margin:0 auto;padding:8px 22px 46px;font-size:11px;letter-spacing:.14em;text-align:center}
+.foot-txt{opacity:.55}
+#storage-note{display:none;color:var(--red);font-size:12px;font-weight:700;margin-bottom:8px;letter-spacing:.06em}
+
+/* ============ responsive ============ */
+@media (max-width:760px){
+  :root{--dw:22px;--lw:140px}
+  .top{gap:12px;padding:12px 14px}
+  .brand .sub{display:none}
+  .tabs{order:3;width:100%}
+  .tab{flex:1;text-align:center;padding:8px 4px;letter-spacing:.18em;text-indent:.18em}
+  main{padding:20px 14px 60px}
+  .stats{grid-template-columns:1fr 1fr;gap:12px}
+  .stat b{font-size:31px}
+  .ring{width:98px;height:98px}
+  .card-h{padding:10px 12px}
+  .g-label{font-size:12px;padding:0 8px}
+  .legend{margin-left:0}
+  .deck{grid-template-columns:1fr 1fr;gap:10px}
+  .tile-b{padding:8px 10px 9px;gap:5px}
+  .tile-nums b{font-size:22px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="lg lg-c"></span><span class="lg lg-t"></span><span class="lg lg-s"></span>
+    <h1>BAUPLAN</h1>
+    <span class="sub">任務建構系統</span>
+  </div>
+  <nav class="tabs">
+    <button class="tab on" data-view="today">今日</button>
+    <button class="tab" data-view="projects">專案</button>
+    <button class="tab" data-view="gantt">甘特圖</button>
+  </nav>
+  <div class="io">
+    <button class="btn sm" data-action="export">匯出</button>
+    <button class="btn sm" data-action="md-import">Markdown</button>
+    <button class="btn sm" data-action="import">匯入</button>
+    <input type="file" id="file-in" accept=".json,application/json" hidden>
+  </div>
+</header>
+<main>
+  <section id="view-today" class="view show"></section>
+  <section id="view-projects" class="view"></section>
+  <section id="view-gantt" class="view"></section>
+</main>
+<footer>
+  <div id="storage-note">⚠ 預覽模式：目前環境無法永久儲存，重新整理後資料會消失。部署到 GitHub Pages 後即自動存於瀏覽器。</div>
+  <span class="foot-txt">資料儲存於此瀏覽器 · 建議定期「匯出」備份 · BAUPLAN — 每天一點，逐步建成</span>
+</footer>
+<div id="modal"><div class="m-panel" id="m-body"></div></div>
+<div id="toast"></div>
+<script>
+(function(){
+'use strict';
+
+/* ============ storage (localStorage with in-memory fallback) ============ */
+var KEY='bauplan_v1';
+var persistent=true, mem=null;
+try{localStorage.setItem('__bp_test','1');localStorage.removeItem('__bp_test');}catch(e){persistent=false;}
+function loadState(){
+  try{
+    var raw=persistent?localStorage.getItem(KEY):mem;
+    if(!raw)return null;
+    var d=JSON.parse(raw);
+    if(!d||!Array.isArray(d.projects)||!Array.isArray(d.tasks))return null;
+    return d;
+  }catch(e){return null;}
+}
+function save(){
+  var raw=JSON.stringify(state);
+  if(persistent){try{localStorage.setItem(KEY,raw);}catch(e){}}
+  else{mem=raw;}
+}
+
+var state=loadState()||{projects:[],tasks:[]};
+var pendingImport=null;
+var view='today';
+
+/* ============ helpers ============ */
+var COLORS={red:'#DF3418',blue:'#1D57A5',yellow:'#F0B41C',ink:'#16130E'};
+function onColor(c){return c==='yellow'?'#16130E':'#F6F4EE';}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function esc(s){return String(s).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+function $(sel){return document.querySelector(sel);}
+
+function pd(s){var a=s.split('-');return new Date(+a[0],+a[1]-1,+a[2]);}
+function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function TODAY(){return iso(new Date());}
+function addD(s,n){var d=pd(s);d.setDate(d.getDate()+n);return iso(d);}
+function addM(s,n){
+  var d=pd(s),day=d.getDate();
+  d.setDate(1);d.setMonth(d.getMonth()+n);
+  var last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  d.setDate(Math.min(day,last));
+  return iso(d);
+}
+function dayDiff(a,b){return Math.round((pd(b)-pd(a))/864e5);}
+function fmtMD(s){var d=pd(s);return (d.getMonth()+1)+'/'+d.getDate();}
+function fmtRange(t){return t.start===t.end?fmtMD(t.start):fmtMD(t.start)+'\u2013'+fmtMD(t.end);}
+function fmtFull(s){var d=pd(s);return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate();}
+var WD=['日','一','二','三','四','五','六'];
+
+function proj(id){for(var i=0;i<state.projects.length;i++){if(state.projects[i].id===id)return state.projects[i];}return null;}
+function task(id){for(var i=0;i<state.tasks.length;i++){if(state.tasks[i].id===id)return state.tasks[i];}return null;}
+function projTasks(pid){return state.tasks.filter(function(t){return t.pid===pid;});}
+function progress(pid){
+  var ts=projTasks(pid);
+  var d=ts.filter(function(t){return t.done;}).length;
+  return{d:d,n:ts.length,pct:ts.length?Math.round(d/ts.length*100):0};
+}
+function pIndex(pid){for(var i=0;i<state.projects.length;i++){if(state.projects[i].id===pid)return i;}return 999;}
+function streak(){
+  var set={};
+  state.tasks.forEach(function(t){if(t.done&&t.doneAt)set[t.doneAt]=1;});
+  var d=TODAY(),s=0;
+  if(!set[d])d=addD(d,-1);
+  while(set[d]){s++;d=addD(d,-1);}
+  return s;
+}
+
+/* ============ shared pieces ============ */
+function taskItem(x,o){
+  var pr=proj(x.pid)||{name:'—',color:'ink'};
+  return '<div class="task'+(x.done?' done':'')+'">'
+    +'<button class="box'+(x.done?' chk':'')+'" data-action="toggle" data-id="'+x.id+'" aria-label="切換完成"></button>'
+    +'<div class="t-main"><div class="t-title">'+esc(x.title)+'</div>'
+    +'<div class="t-meta"><span class="chip"><i style="background:'+COLORS[pr.color]+'"></i>'+esc(pr.name)+'</span>'
+    +'<span class="t-when'+(o.late?' late':'')+'">'+fmtRange(x)+'</span></div></div>'
+    +(o.move?'<button class="mini" data-action="move-today" data-id="'+x.id+'">移到今天</button>':'')
+    +(o.edit?'<button class="icon" data-action="edit-task" data-id="'+x.id+'">✎</button><button class="icon" data-action="del-task" data-id="'+x.id+'">✕</button>':'')
+    +'</div>';
+}
+function emptyOnboard(){
+  return '<div class="empty"><div class="shapes"><span class="lg lg-c"></span><span class="lg lg-t"></span><span class="lg lg-s"></span></div>'
+    +'<h3>開始你的第一個建構計畫</h3>'
+    +'<p>把大目標拆成一天做得完的小任務，每天推進一格。</p>'
+    +'<button class="btn primary" data-action="new-project">＋ 建立專案</button>'
+    +'<button class="btn" data-action="sample">載入範例資料</button></div>';
+}
+
+/* ============ view: today ============ */
+function renderToday(){
+  var t=TODAY(), now=new Date(), h=now.getHours();
+  var greet=h<5?'夜深了':(h<11?'早安':(h<18?'午安':'晚安'));
+  var active=state.tasks.filter(function(x){return x.start<=t&&t<=x.end;}).sort(function(a,b){return pIndex(a.pid)-pIndex(b.pid)||(a.start<b.start?-1:(a.start>b.start?1:0));});
+  var openT=active.filter(function(x){return !x.done;});
+  var doneT=active.filter(function(x){return x.done;});
+  var overdue=state.tasks.filter(function(x){return !x.done&&x.end<t;})
+    .sort(function(a,b){return a.end<b.end?-1:1;});
+  var remainAll=state.tasks.filter(function(x){return !x.done;}).length;
+  var tm=addD(t,1);
+  var tmN=state.tasks.filter(function(x){return !x.done&&x.start<=tm&&tm<=x.end;}).length;
+  var wkN=state.tasks.filter(function(x){return !x.done&&x.start>t&&x.start<=addD(t,7);}).length;
+  var total=active.length;
+  var pct=total?Math.round(doneT.length/total*100):0;
+  var C=2*Math.PI*46;
+  var dateStr=now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日・星期'+WD[now.getDay()];
+
+  var html='<div class="t-head"><div>'
+    +'<div class="greet">'+greet+'</div>'
+    +'<div class="t-date">'+dateStr+'</div>'
+    +'<div class="t-quote">每天完成一點點，大目標就會自己長出來。</div>'
+    +'</div>'
+    +'<div class="ring-wrap"><svg class="ring" viewBox="0 0 120 120" role="img" aria-label="今日完成率">'
+    +'<circle class="track" cx="60" cy="60" r="46"></circle>'
+    +'<circle class="fill" cx="60" cy="60" r="46" style="stroke-dasharray:'+C.toFixed(2)+';stroke-dashoffset:'+(C*(1-pct/100)).toFixed(2)+'"></circle>'
+    +'<text class="ringtxt" x="60" y="68" text-anchor="middle">'+(total?pct+'%':'—')+'</text>'
+    +'</svg><div class="ring-cap">今日 '+doneT.length+' / '+total+'</div></div></div>';
+
+  html+='<div class="stats">'
+    +'<div class="stat"><b>'+total+'</b><span>今日任務</span></div>'
+    +'<div class="stat"><b>'+doneT.length+'</b><span>今日完成</span></div>'
+    +'<div class="stat"><b>'+streak()+'</b><span>連續天數</span></div>'
+    +'<div class="stat"><b>'+remainAll+'</b><span>全部剩餘</span></div>'
+    +'</div>';
+
+  if(!state.projects.length){
+    html+=emptyOnboard();
+  }else{
+    if(overdue.length){
+      html+='<div class="sec-h red">逾期未完成 <span class="cnt">'+overdue.length+'</span></div><div class="tlist">'
+        +overdue.map(function(x){return taskItem(x,{late:true,move:true});}).join('')+'</div>';
+    }
+    html+='<div class="sec-h">今天的任務 <span class="cnt">'+total+'</span></div>';
+    if(total){
+      html+='<div class="tlist">'
+        +openT.map(function(x){return taskItem(x,{});}).join('')
+        +doneT.map(function(x){return taskItem(x,{});}).join('')
+        +'</div>';
+    }else{
+      html+='<div class="empty" style="margin-top:0"><div class="shapes"><span class="lg lg-c"></span><span class="lg lg-t"></span><span class="lg lg-s"></span></div>'
+        +'<h3>今天沒有排程</h3><p>想維持連續紀錄？挑一件十分鐘能完成的小事。</p>'
+        +'<button class="btn primary" data-action="new-task">＋ 新增任務</button>'
+        +'<button class="btn" data-action="goto-gantt">看甘特圖</button></div>';
+    }
+    html+='<div class="next-line">▸ 明天 '+tmN+' 項・未來 7 天將開始 '+wkN+' 項</div>';
+  }
+  $('#view-today').innerHTML=html;
+}
+
+/* ============ view: projects (flight deck) ============ */
+var selPid=null;
+
+function renderProjects(){
+  var t=TODAY();
+  var allN=state.tasks.length;
+  var doneN=state.tasks.filter(function(x){return x.done;}).length;
+  var oPct=allN?Math.round(doneN/allN*100):0;
+
+  if(!state.projects.length){
+    $('#view-projects').innerHTML=emptyOnboard();
+    return;
+  }
+  if(!selPid||!proj(selPid))selPid=state.projects[0].id;
+
+  var html='<div class="bar-row">'
+    +'<div class="overall">全部進度 '+oPct+'%（'+doneN+' / '+allN+'）</div>'
+    +'<div class="drag-hint">⠿ 按住拖曳磚塊可排優先順序</div>'
+    +'</div>';
+
+  html+='<div class="deck">';
+  state.projects.forEach(function(p){
+    var pg=progress(p.id);
+    var ts=projTasks(p.id);
+    var todayN=0,lateN=0,next=null;
+    ts.forEach(function(x){
+      if(x.done)return;
+      if(x.start<=t&&t<=x.end)todayN++;
+      if(x.end<t)lateN++;
+      if(!next||x.start<next.start)next=x;
+    });
+    html+='<div class="tile'+(p.id===selPid?' sel':'')+'" data-action="sel-project" data-pid="'+p.id+'">'
+      +'<div class="tile-top" style="background:'+COLORS[p.color]+'"></div>'
+      +'<div class="tile-b">'
+      +'<div class="tile-h"><span class="tile-name">'+esc(p.name)+'</span><span class="grab" title="拖曳排序" aria-label="拖曳排序">⠿</span></div>'
+      +'<div class="tile-nums"><b>'+(pg.n-pg.d)+'</b><span>剩餘</span><em>'+pg.pct+'%</em></div>'
+      +'<div class="pbar tiny"><i style="width:'+pg.pct+'%;background:'+COLORS[p.color]+'"></i></div>'
+      +'<div class="tile-meta">今日 '+todayN+'　<span class="'+(lateN?'late':'')+'">逾期 '+lateN+'</span></div>'
+      +'<div class="tile-next">'+(next?('▸ '+fmtMD(next.start)+'　'+esc(next.title)):'▸ 無待辦——拆出下一步')+'</div>'
+      +'</div></div>';
+  });
+  html+='<button class="tile tile-add" data-action="new-project">＋ 新增專案</button></div>';
+
+  var p=proj(selPid);
+  var pg=progress(p.id);
+  var ts=projTasks(p.id).slice().sort(function(a,b){return a.start<b.start?-1:(a.start>b.start?1:0);});
+  html+='<div class="card">'
+    +'<div class="card-h" style="background:'+COLORS[p.color]+';color:'+onColor(p.color)+'">'
+    +'<span class="card-name">'+esc(p.name)+'</span>'
+    +'<button class="hbtn" data-action="new-task" data-pid="'+p.id+'">＋ 任務</button>'
+    +'<button class="hbtn" data-action="edit-project" data-id="'+p.id+'">編輯</button>'
+    +'<button class="hbtn" data-action="del-project" data-id="'+p.id+'">刪除</button>'
+    +'</div><div class="card-b">'
+    +'<div class="p-meta">'+(p.target?'目標日 '+fmtFull(p.target)+'・':'')+'已完成 '+pg.d+' / '+pg.n+'・剩餘 '+(pg.n-pg.d)+' 項</div>'
+    +'<div class="pbar"><i style="width:'+pg.pct+'%;background:'+COLORS[p.color]+'"></i></div>';
+  if(ts.length){
+    html+='<div class="tlist">'+ts.map(function(x){return taskItem(x,{edit:true,late:!x.done&&x.end<t});}).join('')+'</div>';
+  }else{
+    html+='<div class="hint">還沒有任務 — 按「＋ 任務」把第一步拆出來。</div>';
+  }
+  html+='</div></div>';
+
+  $('#view-projects').innerHTML=html;
+  initDeckDrag();
+}
+
+/* ============ deck drag to reorder ============ */
+var dragEl=null,dragMoved=false,dragSX=0,dragSY=0,suppressClick=false;
+function initDeckDrag(){
+  document.querySelectorAll('#view-projects .grab').forEach(function(h){
+    h.addEventListener('pointerdown',deckDown);
+  });
+}
+function deckDown(e){
+  var tile=e.target.closest('.tile');
+  if(!tile)return;
+  e.preventDefault();
+  dragEl=tile;dragMoved=false;dragSX=e.clientX||0;dragSY=e.clientY||0;
+  document.addEventListener('pointermove',deckMove);
+  document.addEventListener('pointerup',deckUp);
+  document.addEventListener('pointercancel',deckUp);
+}
+function deckMove(e){
+  if(!dragEl)return;
+  if(!dragMoved){
+    if(Math.abs((e.clientX||0)-dragSX)+Math.abs((e.clientY||0)-dragSY)<6)return;
+    dragMoved=true;dragEl.classList.add('dragging');
+  }
+  if(!document.elementFromPoint)return;
+  var over=document.elementFromPoint(e.clientX,e.clientY);
+  var tile=over?over.closest('.tile'):null;
+  if(tile&&tile!==dragEl&&!tile.classList.contains('tile-add')&&tile.parentNode===dragEl.parentNode){
+    var deck=dragEl.parentNode;
+    var kids=Array.prototype.slice.call(deck.children);
+    if(kids.indexOf(dragEl)<kids.indexOf(tile))deck.insertBefore(dragEl,tile.nextSibling);
+    else deck.insertBefore(dragEl,tile);
+  }
+}
+function deckUp(){
+  document.removeEventListener('pointermove',deckMove);
+  document.removeEventListener('pointerup',deckUp);
+  document.removeEventListener('pointercancel',deckUp);
+  if(!dragEl)return;
+  var el=dragEl;dragEl=null;
+  el.classList.remove('dragging');
+  if(!dragMoved)return;
+  dragMoved=false;
+  suppressClick=true;
+  setTimeout(function(){suppressClick=false;},350);
+  var deck=el.parentNode;
+  var order=[];
+  Array.prototype.forEach.call(deck.children,function(c){
+    var pid=c.getAttribute('data-pid');
+    if(pid)order.push(pid);
+  });
+  var prev=state.projects.map(function(p){return p.id;}).join();
+  state.projects.sort(function(a,b){return order.indexOf(a.id)-order.indexOf(b.id);});
+  if(state.projects.map(function(p){return p.id;}).join()!==prev){
+    save();
+    toast('已更新優先順序');
+  }
+  render();
+}
+
+/* ============ view: gantt ============ */
+var gStart=(function(){var d=new Date();return iso(new Date(d.getFullYear(),d.getMonth(),1));})();
+
+function cellsHTML(days,t){
+  var h='';
+  for(var i=0;i<days.length;i++){
+    var d=pd(days[i]);
+    var we=d.getDay()===0||d.getDay()===6;
+    h+='<div class="g-cell'+(we?' we':'')+(days[i]===t?' today':'')+'" style="grid-column:'+(i+1)+'"></div>';
+  }
+  return h;
+}
+
+function renderGantt(){
+  var t=TODAY();
+  var endExcl=addM(gStart,2);
+  var D=dayDiff(gStart,endExcl);
+  var days=[];
+  for(var i=0;i<D;i++)days.push(addD(gStart,i));
+  var cols='repeat('+D+', var(--dw))';
+  var sM=pd(gStart), eM=pd(addM(gStart,1));
+  var rangeTxt=sM.getFullYear()+'年'+(sM.getMonth()+1)+'月 – '+eM.getFullYear()+'年'+(eM.getMonth()+1)+'月';
+
+  var html='<div class="g-ctrl">'
+    +'<button class="btn sm" data-action="g-prev">◀ 上月</button>'
+    +'<button class="btn sm" data-action="g-today">回到今天</button>'
+    +'<button class="btn sm" data-action="g-next">下月 ▶</button>'
+    +'<span class="g-range">'+rangeTxt+'</span>'
+    +'<span class="legend"><span><i class="lg-key solid"></i>已完成</span><span><i class="lg-key stripe"></i>進行中</span><span><i class="lg-key tline"></i>今天</span></span>'
+    +'</div>';
+
+  if(!state.projects.length){
+    html+=emptyOnboard();
+    $('#view-gantt').innerHTML=html;
+    return;
+  }
+
+  var labels='<div class="g-label g-lm">BAUPLAN</div><div class="g-label g-ld">任務</div>';
+
+  var mrow='<div class="g-row g-mrow" style="grid-template-columns:'+cols+'">';
+  var mi=0;
+  while(mi<D){
+    var md=pd(days[mi]), m=md.getMonth(), y=md.getFullYear(), mj=mi;
+    while(mj<D){var ed=pd(days[mj]);if(ed.getMonth()!==m||ed.getFullYear()!==y)break;mj++;}
+    mrow+='<div class="g-month" style="grid-column:'+(mi+1)+'/'+(mj+1)+(mi>0?';border-left:3px solid var(--ink)':'')+'">'+y+'年'+(m+1)+'月</div>';
+    mi=mj;
+  }
+  mrow+='</div>';
+
+  var drow='<div class="g-row g-drow" style="grid-template-columns:'+cols+'">';
+  for(var k=0;k<D;k++){
+    var dd=pd(days[k]);
+    var we=dd.getDay()===0||dd.getDay()===6;
+    drow+='<div class="g-day'+(we?' we':'')+(days[k]===t?' today':'')+'" style="grid-column:'+(k+1)+'"><span>'+WD[dd.getDay()]+'</span><b>'+dd.getDate()+'</b></div>';
+  }
+  drow+='</div>';
+
+  var rows=mrow+drow;
+
+  state.projects.forEach(function(p){
+    var all=projTasks(p.id);
+    var pg=progress(p.id);
+    var vis=all.filter(function(x){return x.start<endExcl&&x.end>=gStart;})
+      .sort(function(a,b){return a.start<b.start?-1:(a.start>b.start?1:0);});
+
+    labels+='<div class="g-label g-plabel"><i class="dot" style="background:'+COLORS[p.color]+'"></i><span class="g-tname">'+esc(p.name)+'</span><em>'+pg.d+'/'+pg.n+'</em></div>';
+
+    var span='';
+    if(all.length){
+      var mn=all[0].start, mx=all[0].end;
+      all.forEach(function(x){if(x.start<mn)mn=x.start;if(x.end>mx)mx=x.end;});
+      if(mx>=gStart&&mn<endExcl){
+        var ps=Math.max(0,dayDiff(gStart,mn));
+        var pe=Math.min(D-1,dayDiff(gStart,mx));
+        span='<div class="p-span" style="grid-column:'+(ps+1)+'/'+(pe+2)+'"></div>';
+      }
+    }
+    rows+='<div class="g-row g-prow" style="grid-template-columns:'+cols+'">'+cellsHTML(days,t)+span+'</div>';
+
+    vis.forEach(function(x){
+      var s=Math.max(0,dayDiff(gStart,x.start));
+      var e=Math.min(D-1,dayDiff(gStart,x.end));
+      var col=COLORS[p.color];
+      var fill=x.done?('background-color:'+col):('background-image:repeating-linear-gradient(45deg,'+col+' 0 3px,transparent 3px 7px)');
+      labels+='<div class="g-label g-tlabel'+(x.done?' done':'')+'"><span class="g-tname">'+esc(x.title)+'</span></div>';
+      rows+='<div class="g-row g-trow" style="grid-template-columns:'+cols+'">'+cellsHTML(days,t)
+        +'<div class="g-bar" data-action="toggle" data-id="'+x.id+'" title="'+esc(x.title)+'（'+fmtRange(x)+'）點一下切換完成" style="grid-column:'+(s+1)+'/'+(e+2)+';'+fill+'"></div>'
+        +'</div>';
+    });
+  });
+
+  html+='<div class="g-outer"><div class="g-labels">'+labels+'</div><div class="g-scroll">'+rows+'</div></div>';
+  html+='<div class="g-hint">點甘特圖上的色塊可直接切換完成狀態・左右捲動可查看更多日期。</div>';
+  $('#view-gantt').innerHTML=html;
+
+  var cell=$('#view-gantt .g-day.today');
+  var sc=$('#view-gantt .g-scroll');
+  if(cell&&sc){
+    var cr=cell.getBoundingClientRect(), sr=sc.getBoundingClientRect();
+    sc.scrollLeft+=cr.left-sr.left-90;
+  }
+}
+
+/* ============ modals ============ */
+function openModal(html){
+  $('#m-body').innerHTML=html;
+  $('#modal').classList.add('show');
+  var f=$('#m-body input');
+  if(f)setTimeout(function(){f.focus();},60);
+}
+function closeModal(){$('#modal').classList.remove('show');pendingImport=null;}
+
+function projectForm(id){
+  var pr=id?proj(id):null;
+  var cur=pr?pr.color:'blue';
+  openModal('<h3>'+(pr?'編輯專案':'新增專案')+'</h3>'
+    +'<label>專案名稱</label><input id="f-name" maxlength="40" placeholder="例：地頭蛇計畫" value="'+(pr?esc(pr.name):'')+'">'
+    +'<label>代表色</label><div class="swatches">'
+    +Object.keys(COLORS).map(function(c){return '<button class="sw'+(c===cur?' on':'')+'" data-c="'+c+'" style="background:'+COLORS[c]+'" aria-label="顏色 '+c+'"></button>';}).join('')
+    +'</div>'
+    +'<label>目標日期（選填）</label><input id="f-target" type="date" value="'+(pr&&pr.target?pr.target:'')+'">'
+    +'<div class="m-actions"><button class="btn" data-action="m-cancel">取消</button><button class="btn primary" data-action="save-project" data-id="'+(id||'')+'">儲存</button></div>');
+}
+function saveProject(id){
+  var name=$('#f-name').value.trim();
+  if(!name){toast('請輸入專案名稱');$('#f-name').focus();return;}
+  var sw=$('#m-body .sw.on');
+  var color=sw?sw.getAttribute('data-c'):'blue';
+  var target=$('#f-target').value||'';
+  if(id){var pr=proj(id);if(pr){pr.name=name;pr.color=color;pr.target=target;}}
+  else{var np={id:uid(),name:name,color:color,target:target};state.projects.push(np);selPid=np.id;}
+  save();closeModal();render();toast('已儲存');
+}
+
+function taskForm(id,pid){
+  var tk=id?task(id):null;
+  var t=TODAY();
+  var selPid=tk?tk.pid:(pid||state.projects[0].id);
+  openModal('<h3>'+(tk?'編輯任務':'新增任務')+'</h3>'
+    +'<label>任務內容</label><input id="f-title" maxlength="80" placeholder="拆小一點，一天做得完的量" value="'+(tk?esc(tk.title):'')+'">'
+    +'<label>所屬專案</label><select id="f-pid">'
+    +state.projects.map(function(p){return '<option value="'+p.id+'"'+(p.id===selPid?' selected':'')+'>'+esc(p.name)+'</option>';}).join('')
+    +'</select>'
+    +'<div class="row2"><div><label>開始</label><input id="f-start" type="date" value="'+(tk?tk.start:t)+'"></div>'
+    +'<div><label>結束</label><input id="f-end" type="date" value="'+(tk?tk.end:t)+'"></div></div>'
+    +(tk?'':'<div class="row2"><div><label>重複</label><select id="f-rep"><option value="0">不重複</option><option value="1">每天</option><option value="2">每 2 天</option><option value="3">每 3 天</option><option value="7">每週</option><option value="14">每兩週</option><option value="m">每月</option></select></div>'
+      +'<div><label>次數</label><input id="f-cnt" type="number" min="2" max="60" value="7"></div></div>'
+      +'<div class="hint">選擇重複會一次建立多個自動編號的小任務——原子習慣：拆小、常做、可追蹤。</div>')
+    +'<div class="m-actions"><button class="btn" data-action="m-cancel">取消</button><button class="btn primary" data-action="save-task" data-id="'+(id||'')+'">儲存</button></div>');
+}
+function saveTask(id){
+  var title=$('#f-title').value.trim();
+  if(!title){toast('請輸入任務內容');$('#f-title').focus();return;}
+  var pid=$('#f-pid').value;
+  var start=$('#f-start').value||TODAY();
+  var end=$('#f-end').value||start;
+  if(end<start)end=start;
+  if(id){
+    var tk=task(id);
+    if(tk){tk.title=title;tk.pid=pid;tk.start=start;tk.end=end;}
+  }else{
+    var repEl=$('#f-rep');
+    var rep=repEl?repEl.value:'0';
+    var cnt=repEl?parseInt($('#f-cnt').value,10):1;
+    if(!cnt||cnt<1)cnt=1;
+    if(cnt>60)cnt=60;
+    if(rep==='0'||cnt<2){
+      state.tasks.push({id:uid(),pid:pid,title:title,start:start,end:end,done:false,doneAt:null});
+    }else{
+      var dur=dayDiff(start,end);
+      for(var i=0;i<cnt;i++){
+        var s=(rep==='m')?addM(start,i):addD(start,i*parseInt(rep,10));
+        state.tasks.push({id:uid(),pid:pid,title:title+'（'+(i+1)+'/'+cnt+'）',start:s,end:addD(s,dur),done:false,doneAt:null});
+      }
+    }
+  }
+  save();closeModal();render();toast('已儲存');
+}
+
+/* ============ actions ============ */
+function toggleTask(id){
+  var x=task(id);if(!x)return;
+  x.done=!x.done;
+  x.doneAt=x.done?TODAY():null;
+  save();render();
+  if(x.done)toast('完成 ✓ 又前進一步');
+}
+function moveToday(id){
+  var x=task(id);if(!x)return;
+  var t=TODAY();
+  if(x.start===x.end){x.start=t;x.end=t;}
+  else{x.end=t;if(x.start>x.end)x.start=x.end;}
+  save();render();toast('已移到今天');
+}
+function twoStep(btn,label,fn){
+  if(btn.getAttribute('data-armed')){fn();return;}
+  btn.setAttribute('data-armed','1');
+  var old=btn.textContent;
+  btn.classList.add('armed');
+  btn.textContent=label;
+  setTimeout(function(){
+    if(document.body.contains(btn)){
+      btn.removeAttribute('data-armed');
+      btn.classList.remove('armed');
+      btn.textContent=old;
+    }
+  },2600);
+}
+
+/* ============ markdown import ============ */
+var DATE_RE='(\\d{4}[-\\/.]\\d{1,2}[-\\/.]\\d{1,2}|\\d{4}年\\d{1,2}月\\d{1,2}日?|\\d{1,2}月\\d{1,2}日?|\\d{1,2}[-\\/.]\\d{1,2})';
+function normYMD(y,mo,da){if(mo<1||mo>12||da<1||da>31)return null;return y+'-'+String(mo).padStart(2,'0')+'-'+String(da).padStart(2,'0');}
+function parseDate(str,defYear){
+  if(!str)return null;str=str.trim();var m;
+  if(m=str.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})$/))return normYMD(+m[1],+m[2],+m[3]);
+  if(m=str.match(/^(\d{4})年(\d{1,2})月(\d{1,2})日?$/))return normYMD(+m[1],+m[2],+m[3]);
+  if(m=str.match(/^(\d{1,2})月(\d{1,2})日?$/))return normYMD(defYear,+m[1],+m[2]);
+  if(m=str.match(/^(\d{1,2})[-\/.](\d{1,2})$/))return normYMD(defYear,+m[1],+m[2]);
+  return null;
+}
+function extractRange(text,defYear){
+  var m=text.match(new RegExp(DATE_RE+'\\s*[~～\\-–—]+\\s*'+DATE_RE));
+  if(m){var s=parseDate(m[1],defYear),e=parseDate(m[2],defYear);if(s&&e)return{start:s,end:e<s?s:e,rest:text.replace(m[0],'').trim()};}
+  m=text.match(new RegExp(DATE_RE));
+  if(m){var d=parseDate(m[1],defYear);if(d)return{start:d,end:d,rest:text.replace(m[0],'').trim()};}
+  return null;
+}
+function parseMarkdown(md,defYear){
+  var lines=md.split(/\r?\n/),rows=[],curProj=null,curStart=null,curEnd=null,warnings=[];
+  for(var i=0;i<lines.length;i++){
+    var line=lines[i].trim();if(!line)continue;var m;
+    if(m=line.match(/^#\s+(.+)$/)){curProj=m[1].trim();curStart=curEnd=null;continue;}
+    if(m=line.match(/^#{2,}\s+(.+)$/)){var dr=extractRange(m[1].trim(),defYear);curStart=dr?dr.start:null;curEnd=dr?dr.end:null;continue;}
+    if(!/^[-*+]/.test(line)){var only=extractRange(line,defYear);if(only&&only.rest===''){curStart=only.start;curEnd=only.end;continue;}}
+    if(m=line.match(/^[-*+]\s+(.*)$/)){
+      var body=m[1].trim(),done=false;
+      var cb=body.match(/^\[([ xX])\]\s*(.*)$/);
+      if(cb){done=cb[1].toLowerCase()==='x';body=cb[2].trim();}
+      var start=curStart,end=curEnd||curStart;
+      var inl=extractRange(body,defYear);
+      if(inl){start=inl.start;end=inl.end;if(inl.rest)body=inl.rest;}
+      if(!body){continue;}
+      if(!start){warnings.push('「'+body+'」找不到日期，暫定今日（可在下方調整）');start=end=TODAY();}
+      rows.push({proj:curProj,title:body,start:start,end:end||start,done:done});
+    }
+  }
+  return{rows:rows,warnings:warnings};
+}
+
+var mdParsed=null;      // [{proj,title,start,end,done, choice, newName, dup}]
+var mdProjNames=null;   // distinct proj names from markdown
+var mdRawText='';       // preserve textarea content across preview/back
+
+function openMdImport(){openMdImportWith('');}
+function openMdImportWith(pre){
+  openModal('<div class="m-wide">'
+    +'<h3>從 Markdown 建立任務</h3>'
+    +'<textarea class="md-ta" id="md-in" placeholder="# 地頭蛇計畫\n\n## 2026-08-05\n- 回覆協作單位聯繫\n- 教材更新 2026-08-06 ~ 2026-08-09\n\n## 8/12\n- [ ] 場地確認\n- [x] 器材盤點">'+esc(pre||'')+'</textarea>'
+    +'<div class="md-syntax">'
+    +'<code>#</code> 專案名　<code>##</code> 或裸日期 = 該段日期　<code>-</code> 任務（繼承段落日期）<br>'
+    +'行內可寫 <code>8/6 ~ 8/9</code> 指定跨天　<code>[x]</code> = 已完成　日期支援 <code>2026-08-05</code>、<code>8/5</code>、<code>8月5日</code>'
+    +'</div>'
+    +'<div class="m-actions"><button class="btn" data-action="m-cancel">取消</button><button class="btn primary" data-action="md-preview">預覽</button></div>'
+    +'</div>');
+  $('#modal .m-panel').classList.add('m-wide');
+}
+
+function isDup(r){
+  return state.tasks.some(function(t){
+    var p=proj(t.pid);
+    return p&&p.name===r._projName&&t.start===r.start&&t.title===r.title;
+  });
+}
+
+function mdPreview(){
+  var raw=$('#md-in').value;
+  mdRawText=raw;
+  var res=parseMarkdown(raw,new Date().getFullYear());
+  if(!res.rows.length){toast('沒有解析到任務，檢查格式');return;}
+  mdParsed=res.rows.map(function(r){
+    var existing=proj0ByName(r.proj);
+    return{proj:r.proj,title:r.title,start:r.start,end:r.end,done:r.done,
+      choice:existing?existing.id:'__new__', newName:r.proj||''};
+  });
+  // distinct project names from markdown, in order
+  mdProjNames=[];
+  mdParsed.forEach(function(r){if(r.proj&&mdProjNames.indexOf(r.proj)<0)mdProjNames.push(r.proj);});
+  renderMdPreview(res.warnings);
+}
+function proj0ByName(name){if(!name)return null;for(var i=0;i<state.projects.length;i++){if(state.projects[i].name===name)return state.projects[i];}return null;}
+
+function projLabelFor(row){
+  // resolve current chosen project name for dup detection
+  if(row.choice==='__new__')return row.newName||row.proj||'';
+  var p=proj(row.choice);return p?p.name:'';
+}
+
+function renderMdPreview(warnings){
+  // recompute dup based on current choices
+  mdParsed.forEach(function(r){r._projName=projLabelFor(r);r.dup=isDup(r);});
+  var willCreate=mdParsed.filter(function(r){return !r.dup;}).length;
+  var dupN=mdParsed.length-willCreate;
+
+  var opts=function(sel){
+    var h=state.projects.map(function(p){return '<option value="'+p.id+'"'+(sel===p.id?' selected':'')+'>'+esc(p.name)+'</option>';}).join('');
+    h+='<option value="__new__"'+(sel==='__new__'?' selected':'')+'>＋ 新建專案…</option>';
+    return h;
+  };
+
+  var body='<div class="m-wide"><h3>確認匯入內容</h3>'
+    +'<div class="mp-summary"><span>共 <b>'+mdParsed.length+'</b> 筆</span><span>將建立 <b>'+willCreate+'</b> 筆</span>'
+    +(dupN?'<span>略過重複 <b>'+dupN+'</b> 筆</span>':'')+'</div>';
+  if(warnings&&warnings.length){
+    body+='<div class="mp-warn">'+warnings.map(esc).join('<br>')+'</div>';
+  }
+  body+='<div class="mp-scroll"><table class="mp-table"><thead><tr><th>任務</th><th>日期</th><th>歸到專案</th><th>狀態</th><th></th></tr></thead><tbody>';
+  mdParsed.forEach(function(r,idx){
+    var cls=r.dup?' class="dup"':'';
+    var dateStr=r.start===r.end?fmtMD(r.start):fmtMD(r.start)+'~'+fmtMD(r.end);
+    body+='<tr'+cls+' data-idx="'+idx+'">'
+      +'<td class="mp-t-title">'+esc(r.title)+'</td>'
+      +'<td class="mp-date">'+dateStr+'</td>'
+      +'<td><select class="mp-sel" data-mdrow="'+idx+'">'+opts(r.choice)+'</select>'
+      +(r.choice==='__new__'?'<input class="mp-newname" data-mdname="'+idx+'" value="'+esc(r.newName)+'" placeholder="新專案名稱">':'')
+      +'</td>'
+      +'<td>'+(r.dup?'<span class="mp-badge dup">重複</span>':(r.done?'<span class="mp-badge done">已完成</span>':'<span class="mp-badge">待辦</span>'))+'</td>'
+      +'<td><button class="mp-x" data-mddrop="'+idx+'" title="移除這列">✕</button></td>'
+      +'</tr>';
+  });
+  body+='</tbody></table></div>'
+    +'<div class="md-syntax">重複的任務（同專案 + 同日 + 同名）會自動略過。新建專案顏色會自動指派，事後可改。</div>'
+    +'<div class="m-actions"><button class="btn" data-action="md-back">← 改內容</button><button class="btn primary" data-action="md-commit">建立 '+willCreate+' 筆任務</button></div>'
+    +'</div>';
+  openModal(body);
+  $('#modal .m-panel').classList.add('m-wide');
+}
+
+var MD_COLORS=['blue','red','yellow','ink'];
+function mdCommit(){
+  // recompute dup fresh against current choices/names
+  mdParsed.forEach(function(r){r._projName=projLabelFor(r);r.dup=isDup(r);});
+  var created=0, newProjCount=0;
+  var nameToId={};
+  // group new-project names so identical new names share one project
+  mdParsed.forEach(function(r){
+    if(r.dup)return;
+    var pid;
+    if(r.choice==='__new__'){
+      var nm=(r.newName||r.proj||'未命名專案').trim()||'未命名專案';
+      if(nameToId[nm]){pid=nameToId[nm];}
+      else{
+        var exist=proj0ByName(nm);
+        if(exist){pid=exist.id;}
+        else{
+          var color=MD_COLORS[(state.projects.length+newProjCount)%MD_COLORS.length];
+          var np={id:uid(),name:nm,color:color,target:''};
+          state.projects.push(np);pid=np.id;newProjCount++;
+        }
+        nameToId[nm]=pid;
+      }
+    }else{pid=r.choice;}
+    state.tasks.push({id:uid(),pid:pid,title:r.title,start:r.start,end:r.end,done:r.done,doneAt:r.done?r.start:null});
+    created++;
+  });
+  mdParsed=null;mdProjNames=null;
+  save();closeModal();
+  if(view!=='today')switchView('projects');else render();
+  toast('已建立 '+created+' 筆任務'+(newProjCount?'（新增 '+newProjCount+' 個專案）':''));
+}
+
+/* ============ export / import / sample ============ */
+function doExport(){
+  var blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='bauplan-'+TODAY()+'.json';
+  document.body.appendChild(a);a.click();a.remove();
+  toast('已匯出 JSON 備份');
+}
+function normalize(d){
+  var out={projects:[],tasks:[]};
+  out.projects=d.projects.filter(function(p){return p&&p.id&&p.name;}).map(function(p){
+    return{id:String(p.id),name:String(p.name),color:COLORS[p.color]?p.color:'blue',target:p.target||''};
+  });
+  var pids={};
+  out.projects.forEach(function(p){pids[p.id]=1;});
+  out.tasks=d.tasks.filter(function(t){return t&&t.id&&t.title&&pids[t.pid]&&t.start;}).map(function(t){
+    var start=t.start, end=t.end||start;
+    if(end<start)end=start;
+    return{id:String(t.id),pid:String(t.pid),title:String(t.title),start:start,end:end,done:!!t.done,doneAt:t.done?(t.doneAt||start):null};
+  });
+  return out;
+}
+function loadSample(){
+  var t=TODAY();
+  var p1={id:uid(),name:'地頭蛇計畫',color:'blue',target:addD(t,60)};
+  var p2={id:uid(),name:'攝影專題整理',color:'red',target:''};
+  state.projects.push(p1,p2);
+  function T(pid,title,s,e,done){state.tasks.push({id:uid(),pid:pid,title:title,start:s,end:e||s,done:!!done,doneAt:done?s:null});}
+  T(p1.id,'上一期 Substack 發佈',addD(t,-3),null,true);
+  T(p1.id,'回覆協作單位聯繫',addD(t,-1));
+  T(p1.id,'下一期 Substack 草稿',t);
+  T(p1.id,'工作坊教材更新（1/3）',addD(t,2));
+  T(p1.id,'工作坊教材更新（2/3）',addD(t,9));
+  T(p1.id,'工作坊教材更新（3/3）',addD(t,16));
+  T(p1.id,'器材清單盤點',addD(t,4),addD(t,5));
+  T(p1.id,'演練場地確認',addD(t,7));
+  T(p1.id,'講義翻譯校對',addD(t,12),addD(t,14));
+  T(p2.id,'選片 30 張',addD(t,1),addD(t,3));
+  T(p2.id,'批次修圖與輸出',addD(t,6));
+  save();render();toast('已載入範例，可自由修改或刪除');
+}
+
+/* ============ view switching & events ============ */
+function switchView(v){
+  view=v;
+  document.querySelectorAll('.tab').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-view')===v);});
+  document.querySelectorAll('.view').forEach(function(s){s.classList.toggle('show',s.id==='view-'+v);});
+  render();
+}
+function render(){
+  if(view==='today')renderToday();
+  else if(view==='projects')renderProjects();
+  else renderGantt();
+}
+
+document.addEventListener('click',function(e){
+  if(suppressClick){suppressClick=false;return;}
+  var drop=e.target.closest('[data-mddrop]');
+  if(drop&&mdParsed){
+    var di=+drop.getAttribute('data-mddrop');
+    mdParsed.splice(di,1);
+    if(!mdParsed.length){closeModal();toast('已全部移除');return;}
+    renderMdPreview([]);
+    return;
+  }
+  var b=e.target.closest('[data-action],[data-c],.tab');
+  if(!b)return;
+  if(b.classList.contains('tab')){switchView(b.getAttribute('data-view'));return;}
+  if(b.getAttribute('data-c')){
+    document.querySelectorAll('#m-body .sw').forEach(function(s){s.classList.remove('on');});
+    b.classList.add('on');
+    return;
+  }
+  var a=b.getAttribute('data-action');
+  var id=b.getAttribute('data-id');
+  if(a==='toggle')toggleTask(id);
+  else if(a==='move-today')moveToday(id);
+  else if(a==='new-project')projectForm();
+  else if(a==='edit-project')projectForm(id);
+  else if(a==='sel-project'){selPid=b.getAttribute('data-pid');renderProjects();}
+  else if(a==='del-project')twoStep(b,'確定刪除？',function(){
+    state.projects=state.projects.filter(function(p){return p.id!==id;});
+    state.tasks=state.tasks.filter(function(x){return x.pid!==id;});
+    save();render();toast('專案已刪除');
+  });
+  else if(a==='new-task'){
+    if(!state.projects.length){toast('請先建立一個專案');projectForm();}
+    else taskForm(null,b.getAttribute('data-pid')||selPid||state.projects[0].id);
+  }
+  else if(a==='edit-task')taskForm(id);
+  else if(a==='del-task')twoStep(b,'確定？',function(){
+    state.tasks=state.tasks.filter(function(x){return x.id!==id;});
+    save();render();toast('任務已刪除');
+  });
+  else if(a==='save-project')saveProject(id||null);
+  else if(a==='save-task')saveTask(id||null);
+  else if(a==='m-cancel')closeModal();
+  else if(a==='g-prev'){gStart=addM(gStart,-1);renderGantt();}
+  else if(a==='g-next'){gStart=addM(gStart,1);renderGantt();}
+  else if(a==='g-today'){var d=new Date();gStart=iso(new Date(d.getFullYear(),d.getMonth(),1));renderGantt();}
+  else if(a==='goto-gantt')switchView('gantt');
+  else if(a==='md-import')openMdImport();
+  else if(a==='md-preview')mdPreview();
+  else if(a==='md-back')openMdImportWith(mdRawText);
+  else if(a==='md-commit')mdCommit();
+  else if(a==='export')doExport();
+  else if(a==='import')$('#file-in').click();
+  else if(a==='sample')loadSample();
+  else if(a==='confirm-import'){
+    if(pendingImport){
+      state=normalize(pendingImport);
+      pendingImport=null;
+      save();closeModal();render();toast('匯入完成');
+    }
+  }
+});
+
+document.addEventListener('change',function(e){
+  var sel=e.target.closest('[data-mdrow]');
+  if(sel&&mdParsed){
+    var i=+sel.getAttribute('data-mdrow');
+    mdParsed[i].choice=sel.value;
+    renderMdPreview([]); // re-render to show/hide new-name input & recompute dup
+  }
+});
+document.addEventListener('input',function(e){
+  var nm=e.target.closest('[data-mdname]');
+  if(nm&&mdParsed){
+    var i=+nm.getAttribute('data-mdname');
+    mdParsed[i].newName=nm.value;
+    // update dup badge live without full re-render (keep focus)
+  }
+});
+
+$('#file-in').addEventListener('change',function(e){
+  var f=e.target.files[0];
+  if(!f)return;
+  var r=new FileReader();
+  r.onload=function(){
+    try{
+      var d=JSON.parse(r.result);
+      if(!d||!Array.isArray(d.projects)||!Array.isArray(d.tasks))throw new Error('bad');
+      pendingImport=d;
+      openModal('<h3>匯入資料</h3><p class="hint" style="font-size:14px">將以匯入檔覆蓋目前資料（現有 '+state.projects.length+' 個專案、'+state.tasks.length+' 項任務）。建議先「匯出」備份。</p>'
+        +'<div class="m-actions"><button class="btn" data-action="m-cancel">取消</button><button class="btn primary" data-action="confirm-import">確認匯入</button></div>');
+    }catch(err){toast('檔案格式不正確');}
+  };
+  r.readAsText(f);
+  e.target.value='';
+});
+
+$('#modal').addEventListener('click',function(e){if(e.target.id==='modal')closeModal();});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){closeModal();return;}
+  if(e.key==='Enter'&&$('#modal').classList.contains('show')&&e.target.tagName==='INPUT'){
+    var b=$('#m-body .btn.primary');
+    if(b){e.preventDefault();b.click();}
+  }
+});
+
+/* ============ toast & init ============ */
+var toastT=null;
+function toast(msg){
+  var el=$('#toast');
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(toastT);
+  toastT=setTimeout(function(){el.classList.remove('show');},1900);
+}
+
+if(!persistent)$('#storage-note').style.display='block';
+switchView('today');
+})();
+</script>
+</body>
+</html>
